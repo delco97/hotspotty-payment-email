@@ -5,7 +5,7 @@ description = "A command line tool that takes as input a list of commission repo
 authors = ["Andrea Del Corto <andrea.delcorto@gmail.com>"]
 readme = "README.md"
 packages = [
-    { include = "hotspotty-payment-email" }
+    { include = "hotspotty_payment_email" }
 ]
 
 [tool.poetry.dependencies]
