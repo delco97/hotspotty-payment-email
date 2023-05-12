@@ -69,7 +69,7 @@ def process_reports(reports: list[str], delimiter: str) -> pd.DataFrame:
 
     return result
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser(
         description='Send payment notification emails to users inside some contact commissions reports files exported from Hotspotty.')
     parser.add_argument('--credentials', type=str, required=True,
@@ -113,3 +113,4 @@ if __name__ == '__main__':
             amount_iot=row['amount_iot'],
             amount_hnt=row['amount_hnt'],
         )
+
