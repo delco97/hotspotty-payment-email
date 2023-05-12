@@ -1,7 +1,7 @@
-import argparse
 from datetime import date
 from email.message import EmailMessage
 
+import click
 import pandas as pd
 import base64
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -9,10 +9,12 @@ from googleapiclient.discovery import build, Resource
 from jinja2 import Template
 from requests import HTTPError
 import logging
+
 logger = logging.getLogger(__name__)
 
-def send_email(*, service: Resource, subject: str, template_path: str, recipient_email: str, start_date: str, end_date: str, name: str, wallet: str, amount_iot: float, amount_hnt: float, draft: bool = True):
 
+def send_email(*, service: Resource, subject: str, template_path: str, recipient_email: str, start_date: str,
+               end_date: str, name: str, wallet: str, amount_iot: float, amount_hnt: float, draft: bool = True):
     with open(template_path, 'r') as f:
         template = Template(f.read())
 
@@ -46,6 +48,7 @@ def send_email(*, service: Resource, subject: str, template_path: str, recipient
         message = None
     return message
 
+
 def process_reports(reports: list[str], delimiter: str) -> pd.DataFrame:
     data = pd.DataFrame()
     for report in reports:
@@ -69,29 +72,24 @@ def process_reports(reports: list[str], delimiter: str) -> pd.DataFrame:
 
     return result
 
-def main():
-    parser = argparse.ArgumentParser(
-        description='Send payment notification emails to users inside some contact commissions reports files exported from Hotspotty.')
-    parser.add_argument('--credentials', type=str, required=True,
-                        help='Path to the secret file exported from google cloud platform to authorize the tool to send emails. See README.md for more details.')
-    parser.add_argument('--template', type=str, required=True,
-                        help='Path to a html file representing email template to use to build emails. It can use the following variables: name, start_date, end_date, wallet_address, amount_hnt, amount_iot.')
-    parser.add_argument('--reports', type=str, nargs='+', required=True,
-                        help='Path to one ore more commissions reports. In order to be processable they must have these columns: email, name, walletAddress_blockchain, walletAddress_walletAddress, currency, amount.')
-    parser.add_argument('--subject', type=str, help='Subject of the emails to send.')
-    parser.add_argument('--start', type=date.fromisoformat, help='Specify a start date for the report in ISO format (YYYY-MM-DD)')
-    parser.add_argument('--end', type=date.fromisoformat, help='Specify a end date for the report in ISO format (YYYY-MM-DD)')
-    parser.add_argument('--delimiter', type=str, default=',', help='Delimiter used in the reports files.')
-    parser.add_argument('--draft', type=bool, default=True, help='If true, the email will be created as a draft.')
-    args = parser.parse_args()
-    credentials: str = args.credentials
-    reports: list[str] = args.reports
-    subject: str = args.subject
-    template: str = args.template
-    start: date = args.start
-    end: date = args.end
-    delimiter: str = args.delimiter
-    draft: bool = args.draft
+
+@click.command(
+    help='Send payment notification emails to users inside some contact commissions reports files exported from Hotspotty.')
+@click.option('--credentials', type=str, required=True,
+              help='Path to the secret file exported from google cloud platform to authorize the tool to send emails. See README.md for more details.')
+@click.option('--template', type=str, required=True,
+              help='Path to a html file representing email template to use to build emails. It can use the following variables: name, start_date, end_date, wallet_address, amount_hnt, amount_iot.')
+@click.option('--reports', type=str, nargs='+', required=True,
+              help='Path to one ore more commissions reports. In order to be processable they must have these columns: email, name, walletAddress_blockchain, walletAddress_walletAddress, currency, amount.')
+@click.option('--subject', type=str, help='Subject of the emails to send.')
+@click.option('--start', type=date.fromisoformat,
+              help='Specify a start date for the report in ISO format (YYYY-MM-DD)')
+@click.option('--end', type=date.fromisoformat,
+              help='Specify a end date for the report in ISO format (YYYY-MM-DD)')
+@click.option('--delimiter', type=str, default=',', help='Delimiter used in the reports files.')
+@click.option('--draft', type=bool, default=True, help='If true, the email will be created as a draft.')
+def cli(credentials: str, reports: list[str], subject: str, template: str, start: date, end: date, delimiter: str,
+        draft: bool):
 
     result = process_reports(reports, delimiter)
 
@@ -113,4 +111,3 @@ def main():
             amount_iot=row['amount_iot'],
             amount_hnt=row['amount_hnt'],
         )
-
