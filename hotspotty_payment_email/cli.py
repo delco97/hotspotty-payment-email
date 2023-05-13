@@ -2,11 +2,11 @@ from datetime import date
 from email.message import EmailMessage
 
 import click
-import pandas as pd
 import base64
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build, Resource
 from jinja2 import Template
+from pandas import DataFrame, read_csv, concat
 from requests import HTTPError
 import logging
 
@@ -49,12 +49,12 @@ def send_email(*, service: Resource, subject: str, template_path: str, recipient
     return message
 
 
-def process_reports(reports: list[str], delimiter: str) -> pd.DataFrame:
-    data = pd.DataFrame()
+def process_reports(reports: list[str], delimiter: str) -> DataFrame:
+    data = DataFrame()
     for report in reports:
-        data = pd.concat([data, pd.read_csv(report, delimiter=delimiter)])
+        data = concat([data, read_csv(report, delimiter=delimiter)])
 
-    result = pd.DataFrame(columns=['email', 'name', 'wallet', 'amount_hnt', 'amount_iot'])
+    result = DataFrame(columns=['email', 'name', 'wallet', 'amount_hnt', 'amount_iot'])
 
     emails = set(data['email'].tolist())
     for email in emails:
@@ -79,7 +79,7 @@ def process_reports(reports: list[str], delimiter: str) -> pd.DataFrame:
               help='Path to the secret file exported from google cloud platform to authorize the tool to send emails. See README.md for more details.')
 @click.option('--template', type=str, required=True,
               help='Path to a html file representing email template to use to build emails. It can use the following variables: name, start_date, end_date, wallet_address, amount_hnt, amount_iot.')
-@click.option('--reports', type=str, nargs='+', required=True,
+@click.option('-r', '--report', type=str, multiple=True, required=True,
               help='Path to one ore more commissions reports. In order to be processable they must have these columns: email, name, walletAddress_blockchain, walletAddress_walletAddress, currency, amount.')
 @click.option('--subject', type=str, help='Subject of the emails to send.')
 @click.option('--start', type=date.fromisoformat,
@@ -88,10 +88,10 @@ def process_reports(reports: list[str], delimiter: str) -> pd.DataFrame:
               help='Specify a end date for the report in ISO format (YYYY-MM-DD)')
 @click.option('--delimiter', type=str, default=',', help='Delimiter used in the reports files.')
 @click.option('--draft', type=bool, default=True, help='If true, the email will be created as a draft.')
-def cli(credentials: str, reports: list[str], subject: str, template: str, start: date, end: date, delimiter: str,
+def cli(credentials: str, report: list[str], subject: str, template: str, start: date, end: date, delimiter: str,
         draft: bool):
 
-    result = process_reports(reports, delimiter)
+    result = process_reports(report, delimiter)
 
     SCOPES = ['https://www.googleapis.com/auth/gmail.compose']
     flow = InstalledAppFlow.from_client_secrets_file(credentials, SCOPES)
