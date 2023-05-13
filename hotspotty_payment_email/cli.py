@@ -1,5 +1,6 @@
 from datetime import date
 from email.message import EmailMessage
+from typing import List
 
 import click
 import base64
@@ -49,7 +50,7 @@ def send_email(*, service: Resource, subject: str, template_path: str, recipient
     return message
 
 
-def process_reports(reports: list[str], delimiter: str) -> DataFrame:
+def process_reports(reports: List[str], delimiter: str) -> DataFrame:
     data = DataFrame()
     for report in reports:
         data = concat([data, read_csv(report, delimiter=delimiter)])
@@ -88,7 +89,7 @@ def process_reports(reports: list[str], delimiter: str) -> DataFrame:
               help='Specify a end date for the report in ISO format (YYYY-MM-DD)')
 @click.option('--delimiter', type=str, default=',', help='Delimiter used in the reports files.')
 @click.option('--draft', type=bool, default=True, help='If true, the email will be created as a draft.')
-def cli(credentials: str, report: list[str], subject: str, template: str, start: date, end: date, delimiter: str,
+def cli(credentials: str, report: List[str], subject: str, template: str, start: date, end: date, delimiter: str,
         draft: bool):
 
     result = process_reports(report, delimiter)

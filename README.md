@@ -64,7 +64,7 @@ After downloading the secret file, you should have a file in this format:
      --template "mail_template.html" \
      --credentials "credentials.json" \
      --delimiter "," \
-     --reports "commission-report-1.csv" "commission-report-2.csv"
+     --report "commission-report-1.csv" -report "commission-report-2.csv"
    ```
 
 ## Sample template e-mail
