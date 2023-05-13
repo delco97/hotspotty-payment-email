@@ -41,8 +41,10 @@ def send_email(*, service: Resource, subject: str, template_path: str, recipient
 
     try:
         if draft:
+            click.echo(f"Preparing draft e-mail for: {recipient_email} - {name}")
             service.users().drafts().create(userId="me", body=create_message).execute()
         else:
+            click.echo(f"Sending e-mail to: {recipient_email} - {name}")
             message = service.users().messages().send(userId="me", body=create_message).execute()
     except HTTPError as error:
         logger.error(F'The following error occurred whe trying to send email to {recipient_email}: {error}')
@@ -98,6 +100,12 @@ def cli(credentials: str, report: List[str], subject: str, template: str, start:
     flow = InstalledAppFlow.from_client_secrets_file(credentials, SCOPES)
     creds = flow.run_local_server(port=0)
     service: Resource = build('gmail', 'v1', credentials=creds)
+
+    if draft:
+        click.echo(f"Preparing {len(result)} drafts...")
+    else:
+        click.echo(f"Sending {len(result)} e-mail...")
+
     for index, row in result.iterrows():
         send_email(
             service=service,
